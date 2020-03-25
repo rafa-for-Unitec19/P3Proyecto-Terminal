@@ -1,7 +1,5 @@
 #include <ncurses.h>
 #include <string>
-#include <dirent.h>
-
 
 using std::string;
 
@@ -32,9 +30,6 @@ void infoUsuario(){
     wrefresh(terminal);
 }
 
-WINDOW* ventana(WINDOW* ventana){
-
-}
 
 void ejecucion(){
     char ch;
@@ -46,15 +41,14 @@ void ejecucion(){
         if (ch == '\n'){
             moverCursor(++contln);
             infoUsuario();
-            int loEncontro = entrada.find("exit");
             if (entrada.find("exit") != string::npos){
+                entrada.clear();
                 exit = true;
-            }
-            if (entrada.find("clear") != string::npos)
-            {
+            }else if (entrada.find("clear") != string::npos){
                 wclear(terminal);
                 moverCursor(0);
                 infoUsuario();
+                entrada.clear();
             }
             
         }else{
