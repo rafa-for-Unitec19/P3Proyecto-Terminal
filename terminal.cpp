@@ -1,48 +1,62 @@
 #include <ncurses.h>
 #include <string>
-#define USUARIO "rafa"
-#define MAQUINA "mipc"
-#define RUTA "/home"
+#include <dirent.h>
+
 
 using std::string;
 
 WINDOW* terminal;
+string USUARIO = "rafa", MAQUINA = "mipc", RUTA = "./home";
 int contln = 0;
+
+void moverCursor(int row){
+    wmove(terminal, row, 0);
+    if (row == 0)
+    {
+        contln = 0;
+    }
+    
+}
 
 void infoUsuario(){
     wattrset(terminal, COLOR_PAIR(3));
     //RECUERDA CONVERTIRLO A C_STRING
-    wprintw(terminal, "%s@%s", USUARIO, MAQUINA);
+    wprintw(terminal, "%s@%s", USUARIO.c_str(), MAQUINA.c_str());
     wattrset(terminal, COLOR_PAIR(1));
     waddch(terminal, ':');
     wattrset(terminal, COLOR_PAIR(2));
     //RECUERDA CONVERTIRLO A C_STRING
-    wprintw(terminal, "~%s", RUTA);
+    wprintw(terminal, "~%s", RUTA.substr(1).c_str());
     wattrset(terminal, COLOR_PAIR(1));
     waddstr(terminal, "$ ");
     wrefresh(terminal);
+}
+
+WINDOW* ventana(WINDOW* ventana){
+
 }
 
 void ejecucion(){
     char ch;
     string entrada = "";
     bool exit = false;
-    start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_BLUE, COLOR_BLACK);
-    init_pair(3, COLOR_GREEN, COLOR_BLACK);
     infoUsuario();
     while(!exit){
         ch = wgetch(terminal);
         if (ch == '\n'){
-            move(++contln, 0);
+            moverCursor(++contln);
             infoUsuario();
             int loEncontro = entrada.find("exit");
-            wprintw(terminal, "El contenido de Entrada: %s", entrada);
-            wprintw(terminal, "Lo abra encontrado alv: %d", loEncontro);
             if (entrada.find("exit") != string::npos){
                 exit = true;
             }
+            if (entrada.find("clear") != string::npos)
+            {
+                wclear(terminal);
+                moverCursor(0);
+                infoUsuario();
+            }
+            
         }else{
             entrada += ch;    
         }
@@ -51,8 +65,11 @@ void ejecucion(){
 
 int main(){
     terminal = initscr();
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(2, COLOR_BLUE, COLOR_BLACK);
+    init_pair(3, COLOR_GREEN, COLOR_BLACK);
     ejecucion();
-    wgetch(terminal);
     endwin();
     return 0;
 }
