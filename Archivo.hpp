@@ -1,7 +1,7 @@
 #ifndef ARCHIVO_H
 #define ARCHIVO_H
 #include <dirent.h>
-//#include <string>
+#include <string>
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -15,7 +15,10 @@ class Archivo
     vector<string> dirBorrado, ficheroActual;
 
 public:
-    Archivo(string p) : path(p){};
+    static const bool isDir = true;
+    static const bool isArch = true;
+    Archivo(){};
+    void setPath(string p){this->path = p;};
     void listarFichero(){
         DIR *pdir = NULL;    //Puntero al Fichero
         pdir = opendir(path.c_str()); // Abre el fichero en el path especifico
@@ -40,7 +43,7 @@ public:
                 std::stringstream strm;
                 strm << pent->d_name;
                 if (strm.str() != "." && strm.str() != ".."){
-                    string temp = strm.str();
+                    string temp = strm.str() + "$";
                     ficheroActual.push_back(temp);    
                 }                
             }
@@ -62,11 +65,18 @@ public:
         return path;
     };
 
-    bool fichExist(string fich){
+    bool fichExist(string fich, bool type){
         for (size_t i = 0; i < ficheroActual.size(); i++){
-            if (ficheroActual[i].find(fich) != string::npos){
-                return true;
-            }
+            if (type){
+                if (ficheroActual[i].find(fich) != string::npos 
+                    && ficheroActual[i].find('$') != string::npos){
+                    return true;
+                }
+            }else{
+                if (ficheroActual[i].find(fich) != string::npos){
+                    return true;
+                }
+            } 
         }
         return false;
     };
@@ -81,6 +91,10 @@ public:
 
     int getFicheroActualTam() const{
         return ficheroActual.size();
+    }
+
+    void eliminarListaFichero(){
+        ficheroActual.clear();
     }
 };
 
