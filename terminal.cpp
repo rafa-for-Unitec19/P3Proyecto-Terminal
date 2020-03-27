@@ -6,7 +6,7 @@ using std::string;
 WINDOW* terminal;
 Archivo fichero;
 
-const string RAIZ = "./Home";
+const string RAIZ = "./Home", ARCHDIR = "Archivo(s) y Directorio(s)", USR = "Usuario(s)", PC = "Maquina(s)";
 const char COMILLAD = 34;
 
 string USUARIO = "rafa", MAQUINA = "mipc", RUTA = "";
@@ -17,6 +17,14 @@ void moverCursor(int row, int col = 0){
     if (row == 0)
     {
         contln = 0;
+    }
+}
+
+void changeInfo(string param, bool tipo){
+    if (tipo){
+        USUARIO = param;
+    }else{
+        MAQUINA = param;
     }
 }
 
@@ -84,13 +92,13 @@ void infoUsuario(){
     wrefresh(terminal);
 }
 
-bool noChEspecial(string str){
+bool noChEspecial(string str, string error){
     int dotCnt = 0;
     for (size_t i = 0; i < str.length(); i++){
         char ch = str.at(i); 
         if (ch != 46 && !(ch >= 64 && ch <= 90) && !(ch >= 97 && ch <= 122) && !(ch >= 48 && ch <= 57)){
             moverCursor(++contln);
-            waddstr(terminal, "Los Ficheros y Directorio son Alfanumericos (Los archivos tienen un punto antes del tipo)");    
+            wprintw(terminal, "Los %s son Alfanumericos (Los archivos tienen un punto antes del tipo)", error.c_str());    
             return false;
         }
         if (ch == 46){
@@ -99,24 +107,25 @@ bool noChEspecial(string str){
     }
     if (dotCnt > 1){
         moverCursor(++contln);
-        waddstr(terminal, "Su Archivo Tiene mas de un PUNTO");
+        waddstr(terminal, "Solo se permite un caracter de PUNTO");
         return false;
     }else{
         return true;
     }
 }
 
-string getNombreFich(int pos, string entrada){
+string getNombreFich(int pos, string entrada, string error){
     int posF = entrada.find(COMILLAD, (pos + 1));
     if (posF != string::npos){
         string fich = entrada.substr((pos + 1) , (posF - (pos + 1)));
-        if (noChEspecial(fich))
-        {
-            return fich;
+        if (!(fich.empty())){
+            if (noChEspecial(fich, error)){
+                return fich;
+            }    
         }
     }else{
         moverCursor(++contln);
-        waddstr(terminal, "No se puso el directorio/archivo entre comillas dobles");
+        wprintw(terminal, "No se puso el %s entre comillas dobles", error.c_str());
         return "";
     }
 }
@@ -149,11 +158,39 @@ void ejecucion(){
                     dirRegresar();
                     entrada.clear();
                 }else if((cdName = entrada.find(COMILLAD)) != string::npos){
-                    string goodName = getNombreFich(cdName, entrada);
+                    string goodName = getNombreFich(cdName, entrada, ARCHDIR);
                     if(goodName != ""){
                         dirCambio(goodName);
                     }
                     entrada.clear();
+                }else{
+                    wprintw(terminal, "<%s> Argumentos incorrectos para cd", entrada.c_str());
+                }
+                entrada.clear();
+            }else if(entrada.find("changeUser") != string::npos
+                && entrada.find("changeUser") == 0){
+                int cdName;
+                if((cdName = entrada.find(COMILLAD)) != string::npos){
+                    string goodName = getNombreFich(cdName, entrada, USR);
+                    if(goodName != ""){
+                        changeInfo(goodName, true);
+                    }
+                }else{
+                    moverCursor(++contln);
+                    wprintw(terminal, "<%s> Argumentos incorrectos para ChangeUser", entrada.c_str());
+                }
+                entrada.clear();
+            }else if(entrada.find("changeMachine") != string::npos
+                && entrada.find("changeMachine") == 0){
+                int cdName;
+                if((cdName = entrada.find(COMILLAD)) != string::npos){
+                    string goodName = getNombreFich(cdName, entrada, PC);
+                    if(goodName != ""){
+                        changeInfo(goodName, false);
+                    }
+                }else{
+                    moverCursor(++contln);
+                    wprintw(terminal, "<%s> Argumentos incorrectos para ChangeMachine", entrada.c_str());
                 }
                 entrada.clear();
             }else{
