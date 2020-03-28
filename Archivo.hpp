@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <cstdlib>
 
 using std::string;
 using std::vector;
@@ -12,12 +13,13 @@ using std::vector;
 class Archivo
 {
     string path;
-    vector<string> dirBorrado, ficheroActual;
-
+    vector<string> ficheroActual;
+    vector<vector<string>> dirBorrado;
 public:
     static const bool isDir = true;
     static const bool isArch = true;
     Archivo(){};
+    ~Archivo(){}
     void setPath(string p){this->path = p;};
     void listarFichero(){
         DIR *pdir = NULL;    //Puntero al Fichero
@@ -31,10 +33,8 @@ public:
         while (pent = readdir(pdir)){ //Recorre los Ficheros
             if (pent == NULL){ // Doble chequeo del Mensaje de Error
                 std::cout << "\nERROR! pent could not be initialised correctly";
-                exit(3);
             }
             if (pent->d_type == DT_REG){
-                //std::cout << "Es Regular" << pent->d_name << std::endl;
                 std::stringstream strm;
                 strm << pent->d_name;
                 string temp = strm.str();
@@ -43,8 +43,12 @@ public:
                 std::stringstream strm;
                 strm << pent->d_name;
                 if (strm.str() != "." && strm.str() != ".."){
-                    string temp = strm.str() + "$";
-                    ficheroActual.push_back(temp);    
+                    string temp = strm.str();
+                    if (!this->isDeleted(temp))
+                    {
+                        temp += '$';
+                        ficheroActual.push_back(temp);
+                    }   
                 }                
             }
             
@@ -80,6 +84,44 @@ public:
         }
         return false;
     };
+
+    string createDir(string name){
+        string path = "mkdir -p " + this->getPath() + "/" + name;
+        const int dir_err = system(path.c_str());
+        if (-1 == dir_err){
+            return "Error creando el directorio!";
+        }else {
+            return "<" + name + "> Directorio Creado!";
+        }
+    }
+
+    string delFichero(string name){
+        if (fichExist(name, true)){
+            vector<string> temp = {name, this->getPath()};
+            dirBorrado.push_back(temp);
+            temp.clear();
+            for (size_t i = 0; i < ficheroActual.size(); i++)
+            {
+                if (ficheroActual[i].find(name) != string::npos 
+                    && ficheroActual[i].find('$') != string::npos){
+                    ficheroActual.erase(ficheroActual.begin() + i);
+                }
+            }
+            return "<" + name + "> Directorio Borrado!";
+        }else{
+            return "No se puede borrar un Directorio que no existe";
+        } 
+    }
+
+    bool isDeleted(string dir){
+        for (size_t i = 0; i < dirBorrado.size(); i++)
+        {
+            if (dir == dirBorrado[i][0] && this->getPath() == dirBorrado[i][1]){
+                return true;
+            }
+        }
+        return false;
+    }
 
     string getPath() const {
         return path;

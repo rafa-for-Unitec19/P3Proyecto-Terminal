@@ -1,4 +1,4 @@
-salida: terminal.cpp Archivo.hpp
+salida: terminal.cpp Archivo.hpp ArchivoIO.hpp
 	g++ -o salida $^ -lncurses
 
 clean:
