@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include "Archivo.hpp"
+#include "ArchivoIO.hpp"
 
 using std::string;
 WINDOW* terminal;
@@ -57,9 +58,9 @@ void printFichero(){
     fichero.eliminarListaFichero();
     fichero.listarFichero();
     if (fichero.getFicheroActualTam()){
-        col = getmaxy(terminal) / 4;
+        col = getmaxy(terminal) / 3;
         for (size_t i = 0; i < fichero.getFicheroActualTam(); i++){
-            if (cont > 3){
+            if (cont > 5){
                 cont = 0;
                 contln++;
             }
@@ -323,6 +324,62 @@ void ejecucion(){
                 }else{
                     moverCursor(++contln);
                     wprintw(terminal, "<%s> Argumentos incorrectos para Del", entrada.c_str());
+                }
+                entrada.clear();
+            }else if(entrada.find("file") != string::npos
+                && entrada.find("file") == 0){
+                int cdName;
+                if((cdName = entrada.find(COMILLAD)) != string::npos){
+                    string goodName = getNombreFich(cdName, entrada, ARCHDIR);
+                    if(goodName != ""){
+                        int typePos = goodName.rfind(".txt");
+                        if (typePos != string::npos && typePos == (goodName.length() - 4))
+                        {
+                        ArchivoIO temp;
+                        string path = fichero.getPath() + "/" + goodName;
+                        temp.crearArchivo(path);
+                        moverCursor(++contln);
+                        wprintw(terminal, "<%s> Creado con Exito", goodName.c_str());
+                        }else{
+                            moverCursor(++contln);
+                            waddstr(terminal, "<read> solo crea archivos .txt");
+                        }
+                    }
+                }else{
+                    moverCursor(++contln);
+                    wprintw(terminal, "<%s> Argumentos incorrectos para file", entrada.c_str());
+                }
+                entrada.clear();
+            }else if(entrada.find("read") != string::npos
+                && entrada.find("read") == 0){
+                int cdName;
+                if((cdName = entrada.find(COMILLAD)) != string::npos){
+                    string goodName = getNombreFich(cdName, entrada, ARCHDIR);
+                    if(goodName != ""){
+                        int typePos = goodName.rfind(".txt");
+                        if (typePos != string::npos && typePos == (goodName.length() - 4))
+                        {
+                            ArchivoIO temp;
+                            string path = fichero.getPath() + "/" + goodName;
+                            string content = temp.leerArchivo(path);
+                            if (content == "")
+                            {
+                                moverCursor(++contln);
+                                waddstr(terminal, "El Archivo .txt esta vacio");
+                            }else{
+                                moverCursor(++contln);
+                                wprintw(terminal, "<%s>", content.c_str());
+                                int col;
+                                getyx(terminal, contln, col);
+                            }
+                        }else {
+                            moverCursor(++contln);
+                            waddstr(terminal, "<read> solo lee archivos .txt");
+                        }
+                    }
+                }else{
+                    moverCursor(++contln);
+                    wprintw(terminal, "<%s> Argumentos incorrectos para read", entrada.c_str());
                 }
                 entrada.clear();
             }else{
