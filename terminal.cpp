@@ -212,6 +212,42 @@ bool changeColor(int pos, string entrada){
     }
 }
 
+string chkWord(string entrada, int typePos){
+    int wordPos = entrada.find("<");
+    if (wordPos != string::npos && wordPos > typePos)
+    {
+        int closeWordPos = entrada.rfind(">");
+        if (closeWordPos != string::npos && closeWordPos == entrada.length() - 1)
+        {
+            string word = entrada.substr((wordPos + 1), (closeWordPos - (wordPos + 1)));
+            if (word != "")
+            {
+                if (word.find(" ") != string::npos)
+                {
+                    moverCursor(++contln);
+                    waddstr(terminal, "NO se puede escribir mas de una palabra");
+                }else{
+                    return word;
+                }
+            }else{
+                moverCursor(++contln);
+                waddstr(terminal, "La palabra a escribir no puedo ser nula");
+            }
+        }
+        else
+        {
+            moverCursor(++contln);
+            waddstr(terminal, "'>' debe ser el unico caracter al final del comando");
+        }
+    }
+    else
+    {
+        moverCursor(++contln);
+        waddstr(terminal, "La palabra a escribir debe estar entre <>");
+    }
+    return "";
+}
+
 void ejecucion(){
     char ch;
     string entrada = "";
@@ -361,16 +397,19 @@ void ejecucion(){
                         {
                             ArchivoIO temp;
                             string path = fichero.getPath() + "/" + goodName;
-                            string content = temp.leerArchivo(path);
-                            if (content == "")
+                            string content = temp.leerArchivo(path, terminal);
+                            if (content == "good")
                             {
-                                moverCursor(++contln);
-                                waddstr(terminal, "El Archivo .txt esta vacio");
+                                for (size_t i = 0; i < temp.getContent().size(); i++)
+                                {
+                                    moverCursor(++contln);
+                                    waddstr(terminal, temp.getContent()[i].c_str());
+                                }
+                                int col;
+                                getyx(terminal, contln, col);
                             }else{
                                 moverCursor(++contln);
                                 wprintw(terminal, "<%s>", content.c_str());
-                                int col;
-                                getyx(terminal, contln, col);
                             }
                         }else {
                             moverCursor(++contln);
@@ -382,6 +421,39 @@ void ejecucion(){
                     wprintw(terminal, "<%s> Argumentos incorrectos para read", entrada.c_str());
                 }
                 entrada.clear();
+            }else if(entrada.find("write") != string::npos
+                && entrada.find("write") == 0){
+                int cdName;
+                if((cdName = entrada.find(COMILLAD)) != string::npos){
+                    string goodName = getNombreFich(cdName, entrada, ARCHDIR);
+                    if(goodName != ""){
+                        int typePos = goodName.rfind(".txt");
+                        if (typePos != string::npos && typePos == (goodName.length() - 4))
+                        {
+                            string word = chkWord(entrada, typePos);
+                            if (word != "")
+                            {
+                                ArchivoIO temp;
+                                string path = fichero.getPath() + "/" + goodName;
+                                if (!temp.escribirArchivo(path, word))
+                                {
+                                    moverCursor(++contln);
+                                    wprintw(terminal, "<%s> El Archivo .txt no existe");
+                                }else{
+                                    moverCursor(++contln);
+                                    waddstr(terminal, "<%s> Palabra Agregada con exito");
+                                }
+                            }
+                        }else {
+                            moverCursor(++contln);
+                            waddstr(terminal, "<write> solo lee archivos .txt");
+                        }
+                    }
+                }else{
+                    moverCursor(++contln);
+                    wprintw(terminal, "<%s> Argumentos incorrectos para Write", entrada.c_str());
+                }
+                entrada.clear();
             }else{
                 moverCursor(++contln);
                 wprintw(terminal, "<%s> No es un comando valido", entrada.c_str());
@@ -389,6 +461,10 @@ void ejecucion(){
             }
             moverCursor(++contln);
             infoUsuario();
+        }else if (ch == 7){
+            wdelch(terminal);
+            wrefresh(terminal);
+            entrada.pop_back();
         }else{
             entrada += ch;    
         }
@@ -399,6 +475,7 @@ int main(){
     RUTA = RAIZ;
     fichero.setPath(RUTA);
     terminal = initscr();
+    keypad(terminal,TRUE);
     start_color();
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, COLOR_BLUE, COLOR_BLACK);

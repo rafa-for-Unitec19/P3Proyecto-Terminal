@@ -2,13 +2,19 @@
 #define ARCHIVOIO_H
 #include <fstream>
 #include <string>
+#include <iostream>
+#include <vector>
+#include <ncurses.h>
 
 using std::string;
 using std::ofstream;
 using std::ifstream;
 using std::ios;
+using std::vector;
 
 class ArchivoIO{
+    vector<string> contenidoArr;
+
 public:
     ArchivoIO(){};
     ~ArchivoIO(){};
@@ -33,7 +39,7 @@ public:
         }
     }
 
-    string leerArchivo(string n){
+    string leerArchivo(string n, WINDOW* TERM){
         ifstream archivo(n);
         if (archivo.fail())
             return "No existe el archivo solicitado.txt";
@@ -44,14 +50,22 @@ public:
                 string contenido = "";
                 while (!archivo.eof())
                 {
-                    archivo.getline(linea, sizeof(linea), '\n');
-                    contenido += linea + '\n';
+                    archivo.getline(linea, sizeof(linea));
+                    contenido = linea;
+                    contenidoArr.push_back(contenido);
                 }
-                return contenido;
+                archivo.close();
+                return "good";
             }else{
+                archivo.close();
                 return "No existe el archivo solicitado.txt";
             }
         }
+        
+    }
+
+    vector<string> getContent(){
+        return contenidoArr;
     }
 };
 #endif
