@@ -8,13 +8,13 @@ using std::string;
 WINDOW* terminal;
 Archivo fichero;
 
-const string RAIZ = "./Home", ARCHDIR = "Archivo(s) y Directorio(s)", USR = "Usuario(s)", PC = "Maquina(s)";
+const string RAIZ = "./Root", ARCHDIR = "Archivo(s) y Directorio(s)", USR = "Usuario(s)", PC = "Maquina(s)";
 const string colors[3] = {"black", "red", "white"};
 string exeCOLOR = "black";
 const char COMILLAD = 34;
 
-string USUARIO = "rafa", MAQUINA = "mipc", RUTA = "";
-int contln = 0;
+string USUARIO = "home", MAQUINA = "vm-gauss", RUTA = "";
+int contln = 0, cursorlim;
 
 void moverCursor(int row, int col = 0){
     wmove(terminal, row, col);
@@ -82,9 +82,9 @@ void printFichero(){
                 {
                     wattrset(terminal, COLOR_PAIR(1));
                 }else if(exeCOLOR == colors[1]){
-                    wattrset(terminal, COLOR_PAIR(3));
+                    wattrset(terminal, COLOR_PAIR(4));
                 }else{
-                    wattrset(terminal, COLOR_PAIR(6));
+                    wattrset(terminal, COLOR_PAIR(7));
                 }
                 waddstr(terminal, fichero.getFicheroActual()[i].c_str());
             }            
@@ -129,6 +129,7 @@ void infoUsuario(){
         waddstr(terminal, "$ ");
         wrefresh(terminal);
     }
+    getyx(terminal, contln, cursorlim);
 }
 
 bool noChEspecial(string str, string error){
@@ -462,9 +463,19 @@ void ejecucion(){
             moverCursor(++contln);
             infoUsuario();
         }else if (ch == 7){
-            wdelch(terminal);
+            int cursorPos;
+            getyx(terminal, contln, cursorPos);
+            if (cursorPos == (cursorlim - 1))
+            {
+                moverCursor(contln, ++cursorPos);
+                beep();
+            }
+            else
+            {
+                wdelch(terminal);
+                entrada.pop_back();
+            }
             wrefresh(terminal);
-            entrada.pop_back();
         }else{
             entrada += ch;    
         }

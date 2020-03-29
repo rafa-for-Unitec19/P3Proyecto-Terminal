@@ -30,7 +30,7 @@ public:
             existencia.close();
             ofstream archivo;
             archivo.open(n, ios::app);
-            archivo << msg << " ";
+            archivo << " " << msg;
             archivo.close();
             return true;
         }else{
